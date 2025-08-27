@@ -1,0 +1,70 @@
+ /* General Styles & Animations */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+:root {
+    --primary-color: #6c63ff;
+    --text-color: #333;
+    --bg-color: #f4f7f6;
+    --card-bg: #ffffff;
+    --shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+}
+/* ... (All other general and card styles remain the same) ... */
+
+/* Copilot Style Chat Interface */
+:root {
+    --copilot-bg: #1e1e1e;
+    --sidebar-bg: #252526;
+    --chat-input-bg: #3c3c3c;
+    --copilot-text: #cccccc;
+    --copilot-border: #444444;
+}
+.copilot-container {
+    display: flex;
+    height: 80vh;
+    min-height: 600px;
+    background: var(--copilot-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    color: var(--copilot-text);
+    box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+}
+/* ... (All other Copilot styles for sidebar, chat-view, etc. remain the same) ... */
+
+.input-area {
+    display: flex;
+    align-items: center;
+    background: var(--chat-input-bg);
+    border-radius: 8px;
+    padding: 0.5rem;
+    border: 1px solid var(--copilot-border);
+}
+#model-selector {
+    background: transparent;
+    border: none;
+    color: var(--copilot-text);
+    padding: 0.5rem;
+    font-weight: 500;
+}
+#userInput {
+    flex-grow: 1;
+    background: transparent;
+    border: none;
+    color: var(--copilot-text);
+    padding: 0.5rem;
+    font-size: 1rem;
+    resize: none;
+}
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: #8e8e93;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: color 0.2s;
+}
+.icon-btn:hover { color: var(--primary-color); }

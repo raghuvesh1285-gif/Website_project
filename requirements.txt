@@ -1,0 +1,4 @@
+ Flask
+groq
+flask-cors
+gunicorn
