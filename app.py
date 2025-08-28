@@ -37,7 +37,7 @@ def chat():
             model=model_id
         )
         # Return only the message content, as the frontend expects
-        return jsonify(chat_completion.choices[0].message)
+        return jsonify(chat_completion.choices[0].message.content)
     except Exception as e:
         # Return a specific error if the API call fails
         return jsonify({"error": f"Groq API Error: {str(e)}"}), 500
@@ -45,3 +45,4 @@ def chat():
 # This part is only for local testing. Render will use Gunicorn.
 if __name__ == '__main__':
     app.run(port=5000)
+
