@@ -1,22 +1,21 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
-    const sendBtn = document.getElementById('sendBtn');
-    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('send-button');
+    const userInput = document.getElementById('user-input');
     const chatBody = document.querySelector('.chat-body');
-    const modelSelector = document.getElementById('model-selector');
-    const imageUploadInput = document.getElementById('image-upload');
+    const modelSelector = document.getElementById('model-select');
+    const imageUploadInput = document.getElementById('image-upload-input');
     const imagePreviewContainer = document.getElementById('image-preview-container');
     const previewImg = document.getElementById('preview-img');
     const removeImgBtn = document.getElementById('remove-img-btn');
 
-    // --- IMPORTANT: CONFIGURE YOUR BACKEND URL ---
-    // Make sure this is your real, live URL from Render
+    // --- IMPORTANT: YOUR SECURE BACKEND URL ---
     const BACKEND_API_URL = "https://website-project-cq53.onrender.com/api/chat";
 
-    // --- SIMPLIFIED MODEL MAPPING ---
+    // --- NEW MODEL MAPPING ---
     const MODEL_MAPPING = {
-        "gpt-oss-120b": "openai/gpt-oss-120b",
-        "llama-4-scout": "meta-llama/llama-4-scout-17b-16e-instruct"
+        "pHi-2-2b": "openai/gpt-oss-120b",
+        "Lfsscp-120b": "meta-llama/llama-4-scout-17b-16e-instruct"
     };
 
     let uploadedImageBase64 = null;
@@ -27,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
     imageUploadInput.addEventListener('change', handleImageSelect);
     removeImgBtn.addEventListener('click', removeImage);
 
-    // --- Core Functions ---
     async function sendMessage() {
         const messageText = userInput.value.trim();
         if (messageText === '' && !uploadedImageBase64) return;
@@ -39,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let modelId;
 
         if (uploadedImageBase64) {
-            modelId = MODEL_MAPPING["llama-4-scout"];
+            modelId = MODEL_MAPPING["Lfsscp-120b"];
             payload = {
                 model: modelId,
                 messages: [{ role: "user", content: [{ type: "text", text: messageText || "Analyze this image." }, { type: "image_url", image_url: { url: uploadedImageBase64 } }] }]
@@ -56,22 +54,16 @@ document.addEventListener('DOMContentLoaded', () => {
         appendMessage("...", 'received', null, true);
 
         try {
-            if (BACKEND_API_URL.includes("your-app-name")) throw new Error("Backend URL not set in script.js");
-            
             const response = await fetch(BACKEND_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
-            if (!response.ok) {
-                const errData = await response.json();
-                const errMsg = errData.error.message || JSON.stringify(errData.error);
-                throw new Error(errMsg);
-            }
-
             const data = await response.json();
-            updateLastMessage(data);
+            if (!response.ok) throw new Error(data.error || "An unknown error occurred.");
+            
+            updateLastMessage(data.content);
 
         } catch (error) {
             updateLastMessage(`Error: ${error.message}`);
@@ -79,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         removeImage();
     }
-
+    
     function handleImageSelect(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -88,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
             uploadedImageBase64 = reader.result;
             previewImg.src = uploadedImageBase64;
             imagePreviewContainer.style.display = 'block';
-            modelSelector.value = 'llama-4-scout';
+            modelSelector.value = 'Lfsscp-120b';
         };
         reader.readAsDataURL(file);
     }
@@ -98,22 +90,25 @@ document.addEventListener('DOMContentLoaded', () => {
         imageUploadInput.value = '';
         imagePreviewContainer.style.display = 'none';
     }
-    
-    function appendMessage(text, type, imgSrc = null, isTyping = false) {
-        const welcome = document.querySelector('.welcome-message');
-        if(welcome) welcome.remove();
 
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `message ${type}`;
+    function appendMessage(text, type, imgSrc = null, isTyping = false) {
+        const welcomeMsg = document.querySelector('.message.welcome');
+        if (welcomeMsg) welcomeMsg.remove();
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', type);
         const p = document.createElement('p');
         
         if (isTyping) {
-            p.textContent = "● ● ●";
+            p.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
         } else {
             if (imgSrc) {
                 const img = document.createElement('img');
                 img.src = imgSrc;
                 img.style.maxWidth = '200px';
+                img.style.borderRadius = '0.75rem';
+                img.style.marginBottom = '0.5rem';
+                img.style.display = 'block';
                 p.appendChild(img);
             }
             if (text) {
@@ -121,22 +116,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        msgDiv.appendChild(p);
-        chatBody.appendChild(msgDiv);
+        messageDiv.appendChild(p);
+        chatBody.appendChild(messageDiv);
+        anime({
+            targets: messageDiv,
+            translateY: [20, 0],
+            opacity: [0, 1],
+            duration: 400,
+            easing: 'easeOutQuart'
+        });
         chatBody.scrollTop = chatBody.scrollHeight;
     }
 
     function updateLastMessage(newText) {
         const typingIndicator = chatBody.querySelector('.message.received:last-child p');
-        if (typingIndicator && typingIndicator.textContent === "● ● ●") {
+        if (typingIndicator && typingIndicator.querySelector('.typing-dot')) {
+            typingIndicator.innerHTML = '';
             typingIndicator.textContent = newText;
         }
     }
-    
-    // Animation Observer
-    const aosElements = document.querySelectorAll('[data-aos]');
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('is-visible'); });
-    }, { threshold: 0.1 });
-    aosElements.forEach(el => observer.observe(el));
 });
