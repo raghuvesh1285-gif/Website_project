@@ -1,33 +1,47 @@
- import os
+import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from groq import Groq
 
+# Initialize Flask App
 app = Flask(__name__)
 CORS(app)
 
+# Initialize Groq Client
+# This will safely fail if the API key is not set on Render
 try:
     client = Groq(api_key=os.environ.get("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"))
 except Exception as e:
     client = None
 
+# Define the API endpoint that your frontend will call
 @app.route('/api/chat', methods=['POST'])
 def chat():
+    # Check if the Groq client was initialized correctly
     if not client:
-        return jsonify({"error": "Groq client not initialized. Check API key on the server."}), 500
+        return jsonify({"error": "Server-side error: Groq API key is not configured."}), 500
 
+    # Get data from the frontend request
     data = request.get_json()
-    model = data.get('model')
+    model_id = data.get('model')
     messages = data.get('messages')
 
-    if not model or not messages:
-        return jsonify({"error": "Missing model or messages in request"}), 400
+    # Basic validation
+    if not model_id or not messages:
+        return jsonify({"error": "Request is missing 'model' or 'messages'."}), 400
 
+    # Forward the request to the Groq API
     try:
-        chat_completion = client.chat.completions.create(messages=messages, model=model)
+        chat_completion = client.chat.completions.create(
+            messages=messages,
+            model=model_id
+        )
+        # Return only the message content, as the frontend expects
         return jsonify(chat_completion.choices[0].message)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        # Return a specific error if the API call fails
+        return jsonify({"error": f"Groq API Error: {str(e)}"}), 500
 
+# This part is only for local testing. Render will use Gunicorn.
 if __name__ == '__main__':
-    app.run(port=5000)
+    app.run(port=5000)
