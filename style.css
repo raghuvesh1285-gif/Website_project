@@ -1,4 +1,4 @@
- /* General Styles & Animations */
+/* General Styles & Animations */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 :root {
     --primary-color: #6c63ff;
@@ -13,7 +13,18 @@ body {
     color: var(--text-color);
     margin: 0;
 }
-/* ... (All other general and card styles remain the same) ... */
+[data-aos] { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+[data-aos].is-visible { opacity: 1; transform: translateY(0); }
+.main-nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; background: var(--card-bg); box-shadow: var(--shadow); }
+.logo { font-size: 1.5rem; font-weight: 600; color: var(--primary-color); }
+.main-nav ul { list-style: none; display: flex; gap: 2rem; margin: 0; }
+.main-nav a { text-decoration: none; color: var(--text-color); font-weight: 500; }
+.content-section { padding: 4rem 2rem; }
+.section-title { text-align: center; font-size: 2.5rem; margin-bottom: 3rem; color: var(--primary-color); }
+.grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+.card { background: var(--card-bg); border-radius: 10px; box-shadow: var(--shadow); padding: 1.5rem; transition: transform 0.3s, box-shadow 0.3s; }
+.card:hover { transform: translateY(-10px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+.card-link { display: inline-block; margin-top: 1rem; background: var(--primary-color); color: #fff; padding: 0.5rem 1.2rem; border-radius: 50px; text-decoration: none; }
 
 /* Copilot Style Chat Interface */
 :root {
@@ -26,45 +37,56 @@ body {
 .copilot-container {
     display: flex;
     height: 80vh;
-    min-height: 600px;
+    max-width: 1000px;
+    margin: auto;
     background: var(--copilot-bg);
     border-radius: 12px;
     overflow: hidden;
     color: var(--copilot-text);
     box-shadow: 0 10px 50px rgba(0,0,0,0.3);
 }
-/* ... (All other Copilot styles for sidebar, chat-view, etc. remain the same) ... */
-
-.input-area {
+.sidebar {
+    width: 260px;
+    background: var(--sidebar-bg);
+    padding: 1rem;
     display: flex;
-    align-items: center;
-    background: var(--chat-input-bg);
-    border-radius: 8px;
-    padding: 0.5rem;
-    border: 1px solid var(--copilot-border);
+    flex-direction: column;
+    border-right: 1px solid var(--copilot-border);
 }
-#model-selector {
-    background: transparent;
+.new-chat-btn {
+    width: 100%;
+    padding: 0.8rem;
+    background: var(--primary-color);
+    color: #fff;
     border: none;
-    color: var(--copilot-text);
-    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
     font-weight: 500;
 }
-#userInput {
+.chat-view {
     flex-grow: 1;
-    background: transparent;
-    border: none;
-    color: var(--copilot-text);
-    padding: 0.5rem;
-    font-size: 1rem;
-    resize: none;
+    display: flex;
+    flex-direction: column;
 }
-.icon-btn {
-    background: transparent;
-    border: none;
-    color: #8e8e93;
-    cursor: pointer;
-    padding: 0.5rem;
-    transition: color 0.2s;
+.chat-body {
+    flex-grow: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
-.icon-btn:hover { color: var(--primary-color); }
+.welcome-message { text-align: center; margin: auto; }
+.message { max-width: 85%; margin-bottom: 1rem; display: flex; flex-direction: column; animation: fadeIn 0.5s; }
+.message p { padding: 0.8rem 1.3rem; border-radius: 18px; line-height: 1.5; word-wrap: break-word; }
+.message.sent { align-self: flex-end; }
+.message.sent p { background: var(--primary-color); color: #fff; }
+.message.received { align-self: flex-start; }
+.message.received p { background: var(--chat-input-bg); }
+.chat-footer { padding: 1rem; }
+.input-area { display: flex; align-items: center; background: var(--chat-input-bg); border-radius: 8px; padding: 0.5rem; border: 1px solid var(--copilot-border); }
+#model-selector { background: transparent; border: none; color: var(--copilot-text); padding: 0.5rem; }
+#userInput { flex-grow: 1; background: transparent; border: none; color: var(--copilot-text); padding: 0.5rem; font-size: 1rem; resize: none; }
+.icon-btn { background: transparent; border: none; color: #8e8e93; font-size: 1.5rem; cursor: pointer; padding: 0.5rem; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
