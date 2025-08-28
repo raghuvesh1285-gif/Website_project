@@ -10,7 +10,7 @@
     const removeImgBtn = document.getElementById('remove-img-btn');
 
     // --- IMPORTANT: CONFIGURE YOUR BACKEND URL ---
-    const BACKEND_API_URL = "https://your-app-name.onrender.com/api/chat";
+    const BACKEND_API_URL = "https://website-project-cq53.onrender.com/api/chat";
 
     // --- Model Mapping ---
     const MODEL_MAPPING = {
