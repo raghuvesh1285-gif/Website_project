@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,25 +8,60 @@
 </head>
 <body>
     <header>
-        <!-- Your standard site header -->
+        <nav class="main-nav">
+            <div class="logo">StudyHub</div>
+            <ul>
+                <li><a href="#notes">Notes</a></li>
+                <li><a href="#papers">Past Papers</a></li>
+                <li><a href="#ai-assistant">AI Assistant</a></li>
+            </ul>
+        </nav>
     </header>
 
     <main>
-        <!-- Your other site sections (hero, notes, papers) -->
+        <!-- RESTORED NOTES SECTION -->
+        <section id="notes" class="content-section" data-aos="fade-up">
+            <h2 class="section-title">Class 10 Study Notes</h2>
+            <div class="grid-container">
+                <div class="card"><h3>English</h3><p>Summaries and analysis for Treasure Trove and The Merchant of Venice.</p><a href="#" class="card-link">View</a></div>
+                <div class="card"><h3>Mathematics</h3><p>Notes on GST, Banking, Linear Inequations, and Quadratic Equations.</p><a href="#" class="card-link">View</a></div>
+                <div class="card"><h3>Physics</h3><p>Covering Force, Work, Power, Energy, Light, Sound, and Electricity.</p><a href="#" class="card-link">View</a></div>
+                <div class="card"><h3>Chemistry</h3><p>Periodic Table, Chemical Bonding, Acids, Bases, Salts, and Metallurgy.</p><a href="#" class="card-link">View</a></div>
+                <div class="card"><h3>Biology</h3><p>Cell Cycle, Genetics, Absorption by Roots, Transpiration, and Photosynthesis.</p><a href="#" class="card-link">View</a></div>
+                <div class="card"><h3>History & Civics</h3><p>Notes on the First War of Independence, The Union Parliament, and The President.</p><a href="#" class="card-link">View</a></div>
+                <div class="card"><h3>Geography</h3><p>Interpretation of Topographical Maps, Climate of India, and Natural Vegetation.</p><a href="#" class="card-link">View</a></div>
+                <div class="card"><h3>Computer Applications</h3><p>Introduction to OOP, Classes, Objects, and Constructors in Java.</p><a href="#" class="card-link">View</a></div>
+                <div class="card"><h3>Economics</h3><p>The Productive Mechanism, Land, Labour, Capital, and Entrepreneurship.</p><a href="#" class="card-link">View</a></div>
+                <div class="card"><h3>Hindi</h3><p>Complete notes and summaries for Sahitya Sagar and Ekanki Sanchay.</p><a href="#" class="card-link">View</a></div>
+            </div>
+        </section>
 
+        <!-- RESTORED PAST PAPERS SECTION -->
+        <section id="papers" class="content-section" data-aos="fade-up">
+            <h2 class="section-title">ISC Past 5 Years Papers</h2>
+            <div class="grid-container">
+                <div class="card"><h3>2025 Papers</h3><p>Download all subjects for the 2025 board exam.</p><a href="#" class="card-link">Download</a></div>
+                <div class="card"><h3>2024 Papers</h3><p>Download all subjects for the 2024 board exam.</p><a href="#" class="card-link">Download</a></div>
+                <div class="card"><h3>2023 Papers</h3><p>Download all subjects for the 2023 board exam.</p><a href="#" class="card-link">Download</a></div>
+                <div class="card"><h3>2022 Papers</h3><p>Download all subjects for the 2022 board exam.</p><a href="#" class="card-link">Download</a></div>
+                <div class="card"><h3>2021 Papers</h3><p>Download all subjects for the 2021 board exam.</p><a href="#" class="card-link">Download</a></div>
+            </div>
+        </section>
+
+        <!-- AI Assistant Section -->
         <section id="ai-assistant" class="content-section" data-aos="fade-up">
             <div class="copilot-container">
                 <div class="sidebar">
                     <button class="new-chat-btn">New Chat</button>
                     <div class="chat-history">
-                        <!-- Chat history can be dynamically added here -->
+                        <!-- Chat history items would go here -->
                     </div>
                 </div>
                 <div class="chat-view">
                     <div class="chat-body">
                         <div class="welcome-message">
                             <h1>Welcome to StudyHub AI</h1>
-                            <p>Select a model, ask a question, or upload an image!</p>
+                            <p>Select a model and ask me anything!</p>
                         </div>
                     </div>
                     <div class="chat-footer">
@@ -42,12 +77,8 @@
                             </select>
                             <textarea id="userInput" placeholder="Ask a question..." rows="1"></textarea>
                             <input type="file" id="image-upload" accept="image/*" style="display: none;">
-                            <label for="image-upload" class="icon-btn" title="Upload Image">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-                            </label>
-                            <button id="sendBtn" class="icon-btn" title="Send">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                            </button>
+                            <label for="image-upload" class="icon-btn" title="Upload Image">📎</label>
+                            <button id="sendBtn" class="icon-btn" title="Send">➤</button>
                         </div>
                     </div>
                 </div>
