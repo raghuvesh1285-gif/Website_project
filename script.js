@@ -1,4 +1,4 @@
- document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
     const sendBtn = document.getElementById('sendBtn');
     const userInput = document.getElementById('userInput');
@@ -10,9 +10,9 @@
     const removeImgBtn = document.getElementById('remove-img-btn');
 
     // --- IMPORTANT: CONFIGURE YOUR BACKEND URL ---
-    const BACKEND_API_URL = "https://website-project-cq53.onrender.com/api/chat";
+    const BACKEND_API_URL = "https://website-project-cq53.onrender.com/api/chat"; // Your live URL
 
-    // --- Model Mapping ---
+    // --- YOUR REQUESTED MODEL MAPPING ---
     const MODEL_MAPPING = {
         atlas: "openai/gpt-oss-120b",
         scholar: "deepseek-ai/deepseek-r1-distill-llama-70b",
@@ -21,13 +21,9 @@
 
     let uploadedImageBase64 = null;
 
-    // --- Event Listeners ---
-    sendBtn.addEventListener('click', sendMessage);
-    userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
-    imageUploadInput.addEventListener('change', handleImageSelect);
-    removeImgBtn.addEventListener('click', removeImage);
-
-    // --- Core Functions ---
+    // --- Event Listeners and Core Functions (No changes needed here) ---
+    // (The rest of the JavaScript from the previous response remains exactly the same)
+    
     async function sendMessage() {
         const messageText = userInput.value.trim();
         if (messageText === '' && !uploadedImageBase64) return;
@@ -46,6 +42,10 @@
             };
         } else {
             const selectedModelKey = modelSelector.value;
+            if (selectedModelKey === 'vision') {
+                appendMessage("Error: Please upload an image to use the Scout (Vision) model.", 'received');
+                return;
+            }
             modelId = MODEL_MAPPING[selectedModelKey];
             payload = {
                 model: modelId,
@@ -53,7 +53,7 @@
             };
         }
 
-        appendMessage("...", 'received', null, true); // Typing indicator
+        appendMessage("...", 'received', null, true);
 
         try {
             if (BACKEND_API_URL.includes("your-app-name")) throw new Error("Backend URL not set in script.js");
@@ -70,74 +70,14 @@
             }
 
             const data = await response.json();
-            updateLastMessage(data.content);
+            updateLastMessage(data);
 
         } catch (error) {
             updateLastMessage(`Error: ${error.message}`);
         }
         
-        removeImage(); // Clear image after sending
+        removeImage();
     }
 
-    function handleImageSelect(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => {
-            uploadedImageBase64 = reader.result;
-            previewImg.src = uploadedImageBase64;
-            imagePreviewContainer.style.display = 'block';
-            modelSelector.value = 'vision'; // Auto-switch to vision model
-        };
-    }
-
-    function removeImage() {
-        uploadedImageBase64 = null;
-        imageUploadInput.value = '';
-        imagePreviewContainer.style.display = 'none';
-    }
-    
-    function appendMessage(text, type, imgSrc = null, isTyping = false) {
-        const welcome = document.querySelector('.welcome-message');
-        if(welcome) welcome.remove();
-
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `message ${type}`;
-        const p = document.createElement('p');
-        
-        if (isTyping) {
-            p.textContent = "● ● ●";
-        } else {
-            if (imgSrc) {
-                const img = document.createElement('img');
-                img.src = imgSrc;
-                img.style.maxWidth = '200px';
-                img.style.display = 'block';
-                img.style.marginBottom = '8px';
-                p.appendChild(img);
-            }
-            if (text) {
-                p.appendChild(document.createTextNode(text));
-            }
-        }
-        
-        msgDiv.appendChild(p);
-        chatBody.appendChild(msgDiv);
-        chatBody.scrollTop = chatBody.scrollHeight;
-    }
-
-    function updateLastMessage(newText) {
-        const typingIndicator = chatBody.querySelector('.message.received:last-child p');
-        if (typingIndicator && typingIndicator.textContent === "● ● ●") {
-            typingIndicator.textContent = newText;
-        }
-    }
-    
-    // Animation Observer
-    const aosElements = document.querySelectorAll('[data-aos]');
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('is-visible'); });
-    }, { threshold: 0.1 });
-    aosElements.forEach(el => observer.observe(el));
+    // ... (rest of the helper functions: handleImageSelect, removeImage, appendMessage, updateLastMessage, observer)
 });
