@@ -19,7 +19,6 @@
     </header>
 
     <main>
-        <!-- RESTORED NOTES SECTION -->
         <section id="notes" class="content-section" data-aos="fade-up">
             <h2 class="section-title">Class 10 Study Notes</h2>
             <div class="grid-container">
@@ -36,7 +35,6 @@
             </div>
         </section>
 
-        <!-- RESTORED PAST PAPERS SECTION -->
         <section id="papers" class="content-section" data-aos="fade-up">
             <h2 class="section-title">ISC Past 5 Years Papers</h2>
             <div class="grid-container">
@@ -48,13 +46,13 @@
             </div>
         </section>
 
-        <!-- AI Assistant Section -->
         <section id="ai-assistant" class="content-section" data-aos="fade-up">
+            <h2 class="section-title">AI Assistant</h2>
             <div class="copilot-container">
                 <div class="sidebar">
                     <button class="new-chat-btn">New Chat</button>
                     <div class="chat-history">
-                        <!-- Chat history items would go here -->
+                        <!-- Chat history items can be dynamically added here -->
                     </div>
                 </div>
                 <div class="chat-view">
@@ -71,22 +69,8 @@
                         </div>
                         <div class="input-area">
                             <select id="model-selector">
-                                <option value="atlas">Atlas (LFSGKPM2-138B)</option>
-                                <option value="scholar">Scholar (SCPDATABASE01-90B)</option>
-                                <option value="vision">Scout (Vision)</option>
+                                <option value="gpt-oss-120b">GPT-OSS 120B</option>
+                                <option value="llama-4-scout">Llama 4 Scout (Vision)</option>
                             </select>
-                            <textarea id="userInput" placeholder="Ask a question..." rows="1"></textarea>
-                            <input type="file" id="image-upload" accept="image/*" style="display: none;">
-                            <label for="image-upload" class="icon-btn" title="Upload Image">📎</label>
-                            <button id="sendBtn" class="icon-btn" title="Send">➤</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-    <script src="script.js"></script>
-</body>
-</html>
+                            <textarea id="userInput" placeholder="Ask a question or upload an image..." rows="1"></textarea>
+                            <input type="file" id="image-upload" accept="image/*" style="display
