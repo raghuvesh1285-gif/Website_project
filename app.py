@@ -10,7 +10,7 @@ CORS(app)
 # Initialize Groq Client
 # This will safely fail if the API key is not set on Render
 try:
-    client = Groq(api_key=os.environ.get("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"))
+    client = Groq(api_key=os.environ.get("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"))
 except Exception as e:
     client = None
 
@@ -45,4 +45,5 @@ def chat():
 # This part is only for local testing. Render will use Gunicorn.
 if __name__ == '__main__':
     app.run(port=5000)
+
 
