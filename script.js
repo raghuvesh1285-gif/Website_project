@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- IMPORTANT: YOUR SECURE BACKEND URL ---
     const BACKEND_API_URL = "https://website-project-cq53.onrender.com/api/chat";
 
-    // --- NEW MODEL MAPPING ---
+    // --- MODEL MAPPING ---
     const MODEL_MAPPING = {
         "pHi-2-2b": "openai/gpt-oss-120b",
         "Lfsscp-120b": "meta-llama/llama-4-scout-17b-16e-instruct"
@@ -61,8 +61,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const data = await response.json();
-            if (!response.ok) throw new Error(data.error || "An unknown error occurred.");
+            if (!response.ok) {
+                // Handle both simple string errors and object errors from the backend
+                const errorMessage = typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
+                throw new Error(errorMessage || "An unknown error occurred.");
+            }
             
+            // Correctly access the content property from the successful response
             updateLastMessage(data.content);
 
         } catch (error) {
@@ -131,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateLastMessage(newText) {
         const typingIndicator = chatBody.querySelector('.message.received:last-child p');
         if (typingIndicator && typingIndicator.querySelector('.typing-dot')) {
-            typingIndicator.innerHTML = '';
+            typingIndicator.innerHTML = ''; // Clear the dots
             typingIndicator.textContent = newText;
         }
     }
