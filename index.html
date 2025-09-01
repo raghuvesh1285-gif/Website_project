@@ -5,76 +5,93 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ISC & ICSE Study Hub</title>
     <link rel="stylesheet" href="style.css">
-    <script src="script.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
 </head>
 <body>
     <header>
         <nav class="main-nav">
             <div class="logo">StudyHub</div>
             <ul>
-                <li><a href="#notes">Notes</a></li>
-                <li><a href="#papers">Past Papers</a></li>
+                <li><a href="#notes-10">Class 10</a></li>
+                <li><a href="#notes-11-12">Class 11-12</a></li>
                 <li><a href="#ai-assistant">AI Assistant</a></li>
             </ul>
         </nav>
     </header>
 
     <main>
-        <section id="notes" class="content-section" data-aos="fade-up">
-            <h2 class="section-title">Class 10 Study Notes</h2>
+        <section id="notes-10" class="content-section" data-aos="fade-up">
+            <h2 class="section-title">Class 10 Notes & Papers</h2>
             <div class="grid-container">
-                <div class="card"><h3>English</h3><p>Summaries and analysis for Treasure Trove and The Merchant of Venice.</p><a href="#" class="card-link">View</a></div>
-                <div class="card"><h3>Mathematics</h3><p>Notes on GST, Banking, Linear Inequations, and Quadratic Equations.</p><a href="#" class="card-link">View</a></div>
-                <div class="card"><h3>Physics</h3><p>Covering Force, Work, Power, Energy, Light, Sound, and Electricity.</p><a href="#" class="card-link">View</a></div>
+                <div class="card"><h3>English</h3><p>Notes & papers for Treasure Trove and The Merchant of Venice.</p><a href="#" class="card-link">Explore</a></div>
+                <div class="card"><h3>Mathematics</h3><p>Notes & papers on GST, Banking, and Quadratic Equations.</p><a href="#" class="card-link">Explore</a></div>
+                <div class="card"><h3>Physics</h3><p>Covering Force, Work, Power, Energy, Light, and Sound.</p><a href="#" class="card-link">Explore</a></div>
             </div>
         </section>
 
-        <section id="papers" class="content-section" data-aos="fade-up">
-            <h2 class="section-title">ISC Past 5 Years Papers</h2>
-            <div class="grid-container">
-                <div class="card"><h3>2025 Papers</h3><p>Download all subjects for the 2025 board exam.</p><a href="#" class="card-link">Download</a></div>
-                <div class="card"><h3>2024 Papers</h3><p>Download all subjects for the 2024 board exam.</p><a href="#" class="card-link">Download</a></div>
-                <div class="card"><h3>2023 Papers</h3><p>Download all subjects for the 2023 board exam.</p><a href="#" class="card-link">Download</a></div>
+        <section id="notes-11-12" class="content-section" data-aos="fade-up">
+            <h2 class="section-title">ISC Class 11 & 12 Notes & Papers</h2>
+            <div class="stream-container">
+                <div class="stream-card" data-aos="fade-up" data-aos-delay="100">
+                    <h3>Science Stream</h3>
+                    <p>Physics, Chemistry, Maths, Biology, Computer Science.</p>
+                    <a href="#" class="card-link">Explore Science</a>
+                </div>
+                <div class="stream-card" data-aos="fade-up" data-aos-delay="200">
+                    <h3>Commerce Stream</h3>
+                    <p>Accounts, Commerce, Business Studies, Economics.</p>
+                    <a href="#" class="card-link">Explore Commerce</a>
+                </div>
+                <div class="stream-card" data-aos="fade-up" data-aos-delay="300">
+                    <h3>Arts Stream</h3>
+                    <p>History, Political Science, Sociology, Psychology, Geography.</p>
+                    <a href="#" class="card-link">Explore Arts</a>
+                </div>
             </div>
         </section>
 
         <section id="ai-assistant" class="content-section" data-aos="fade-up">
-            <h2 class="section-title">AI Assistant</h2>
-            <div class="copilot-container">
-                <div class="sidebar">
-                    <button class="new-chat-btn">New Chat</button>
-                </div>
-                <div class="chat-view">
-                    <div class="chat-body">
-                        <div class="welcome-message">
-                            <h1>Welcome to StudyHub AI</h1>
-                            <p>Select a model and ask me anything!</p>
-                        </div>
+            <div class="chat-container">
+                <div class="chat-header">
+                    <div class="model-selector">
+                        <span>Model:</span>
+                        <select id="model-select">
+                            <option value="gpt-oss-120b">GPT-OSS 120B</option>
+                            <option value="llama-4-scout">Llama 4 Scout (Vision)</option>
+                        </select>
                     </div>
-                    <div class="chat-footer">
-                        <div id="image-preview-container" style="display: none;">
-                            <img id="preview-img" src="" alt="Image preview"/>
-                            <button id="remove-img-btn">&times;</button>
-                        </div>
-                        <div class="input-area">
-                            <select id="model-selector">
-                                <option value="pHi-2-2b">GPT-OSS 120B</option>
-                                <option value="Lfsscp-120b">Llama 4 Scout (Vision)</option>
-                            </select>
-                            <textarea id="userInput" placeholder="Ask a question or upload an image..." rows="1"></textarea>
-                            <input type="file" id="image-upload" accept="image/*" style="display: none;">
-                            <label for="image-upload" class="icon-btn" title="Upload Image">📎</label>
-                            <button id="sendBtn" class="icon-btn" title="Send">➤</button>
-                        </div>
+                </div>
+                <div class="chat-body">
+                    <div class="message welcome">
+                        <p>Welcome! I'm your AI assistant. Ask me anything about your subjects.</p>
+                    </div>
+                </div>
+                <div class="chat-footer">
+                    <div id="image-preview-container" style="display: none;">
+                        <img id="preview-img" src="" alt="Image preview"/>
+                        <button id="remove-img-btn">&times;</button>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="file" id="image-upload-input" accept="image/*" style="display:none;"/>
+                        <label for="image-upload-input" class="icon-btn" title="Upload Image">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                        </label>
+                        <textarea id="user-input" placeholder="Ask a question..." rows="1"></textarea>
+                        <button id="send-button" class="icon-btn" title="Send Message">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        </button>
                     </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Script Tags -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <!-- CRITICAL SCRIPT TAGS -->
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+      AOS.init({ duration: 800, once: true });
+    </script>
     <script src="script.js"></script>
-
 </body>
 </html>
