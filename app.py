@@ -7,44 +7,41 @@ from groq import Groq
 app = Flask(__name__)
 CORS(app)
 
-# --- SECURE KEY HANDLING ---
-# The API key is now loaded securely from an environment variable
-# that we will set on Render.
+# Securely load the API key from environment variables
 api_key = os.environ.get("GROQ_API_KEY")
 
-# Initialize Groq Client
-# This will now safely fail if the API key is not set on Render.
-try:
-    client = Groq(api_key=api_key)
-except Exception as e:
-    client = None
+client = None
+if api_key:
+    try:
+        client = Groq(api_key=api_key)
+    except Exception as e:
+        print(f"Failed to initialize Groq client: {e}")
 
-# Define the API endpoint that your frontend will call
 @app.route('/api/chat', methods=['POST'])
 def chat():
-    # Check if the Groq client was initialized correctly
-    if not client or not api_key:
-        return jsonify({"error": "Server-side error: The Groq API key is not configured or is invalid."}), 500
+    if not client:
+        return jsonify({"error": "Groq API key not configured or invalid on the server."}), 500
 
-    # Get data from the frontend request
     data = request.get_json()
     model_id = data.get('model')
     messages = data.get('messages')
 
-    # Basic validation
     if not model_id or not messages:
-        return jsonify({"error": "Request is missing 'model' or 'messages'."}), 400
+        return jsonify({"error": "Request is missing model or messages."}), 400
 
-    # Forward the request to the Groq API
     try:
+        # --- ADD PARAMETERS HERE TO CONTROL THE RESPONSE ---
         chat_completion = client.chat.completions.create(
             messages=messages,
-            model=model_id
+            model=model_id,
+            temperature=0.5,  # Lower temperature for more focused answers
+            max_completion_tokens=150  # Limit the response to ~150 tokens
         )
+        # -----------------------------------------------------
+
         # Return only the message content
-        return jsonify({"content": chat_completion.choices[0].message.content})
+        return jsonify({"content": chat_completion.choices.message.content})
     except Exception as e:
-        # Return a specific error if the API call fails
         return jsonify({"error": f"Groq API Error: {str(e)}"}), 500
 
 # This part is only for local testing. Render will use Gunicorn.
