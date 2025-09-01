@@ -7,10 +7,15 @@ from groq import Groq
 app = Flask(__name__)
 CORS(app)
 
+# --- SECURE KEY HANDLING ---
+# The API key is now loaded securely from an environment variable
+# that we will set on Render.
+api_key = os.environ.get("GROQ_API_KEY")
+
 # Initialize Groq Client
-# This will safely fail if the API key is not set on Render
+# This will now safely fail if the API key is not set on Render.
 try:
-    client = Groq(api_key=os.environ.get("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"))
+    client = Groq(api_key=api_key)
 except Exception as e:
     client = None
 
@@ -18,8 +23,8 @@ except Exception as e:
 @app.route('/api/chat', methods=['POST'])
 def chat():
     # Check if the Groq client was initialized correctly
-    if not client:
-        return jsonify({"error": "Server-side error: Groq API key is not configured."}), 500
+    if not client or not api_key:
+        return jsonify({"error": "Server-side error: The Groq API key is not configured or is invalid."}), 500
 
     # Get data from the frontend request
     data = request.get_json()
@@ -36,8 +41,8 @@ def chat():
             messages=messages,
             model=model_id
         )
-        # Return only the message content, as the frontend expects
-        return jsonify(chat_completion.choices[0].message.content)
+        # Return only the message content
+        return jsonify({"content": chat_completion.choices[0].message.content})
     except Exception as e:
         # Return a specific error if the API call fails
         return jsonify({"error": f"Groq API Error: {str(e)}"}), 500
@@ -45,5 +50,3 @@ def chat():
 # This part is only for local testing. Render will use Gunicorn.
 if __name__ == '__main__':
     app.run(port=5000)
-
-
