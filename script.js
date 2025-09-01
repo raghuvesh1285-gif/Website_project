@@ -1,15 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
-    const sendBtn = document.getElementById('send-button');
-    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('sendBtn');
+    const userInput = document.getElementById('userInput');
     const chatBody = document.querySelector('.chat-body');
-    const modelSelector = document.getElementById('model-select');
-    const imageUploadInput = document.getElementById('image-upload-input');
+    const modelSelector = document.getElementById('model-selector');
+    const imageUploadInput = document.getElementById('image-upload');
     const imagePreviewContainer = document.getElementById('image-preview-container');
     const previewImg = document.getElementById('preview-img');
     const removeImgBtn = document.getElementById('remove-img-btn');
 
-    // --- IMPORTANT: YOUR SECURE BACKEND URL ---
+    // --- CRITICAL: YOUR LIVE BACKEND URL ---
+    // This MUST be your real URL from Render, not a placeholder.
     const BACKEND_API_URL = "https://website-project-cq53.onrender.com/api/chat";
 
     // --- MODEL MAPPING ---
@@ -54,23 +55,29 @@ document.addEventListener('DOMContentLoaded', () => {
         appendMessage("...", 'received', null, true);
 
         try {
+            // Check if the URL is still a placeholder
+            if (BACKEND_API_URL.includes("your-app-name")) {
+                throw new Error("Backend URL is not configured. Please set the correct URL in script.js.");
+            }
+            
             const response = await fetch(BACKEND_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
-            const data = await response.json();
             if (!response.ok) {
-                // Handle both simple string errors and object errors from the backend
-                const errorMessage = typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
-                throw new Error(errorMessage || "An unknown error occurred.");
+                const errData = await response.json().catch(() => ({ error: "Server returned a non-JSON error response." }));
+                const errMsg = errData.error || `HTTP error! Status: ${response.status}`;
+                throw new Error(errMsg);
             }
-            
-            // Correctly access the content property from the successful response
+
+            const data = await response.json();
+            // Ensure we access the content correctly from the response
             updateLastMessage(data.content);
 
         } catch (error) {
+            // This is where "Failed to fetch" will be caught
             updateLastMessage(`Error: ${error.message}`);
         }
         
@@ -97,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function appendMessage(text, type, imgSrc = null, isTyping = false) {
-        const welcomeMsg = document.querySelector('.message.welcome');
+        const welcomeMsg = document.querySelector('.welcome-message');
         if (welcomeMsg) welcomeMsg.remove();
         
         const messageDiv = document.createElement('div');
@@ -105,15 +112,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const p = document.createElement('p');
         
         if (isTyping) {
-            p.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+            p.innerHTML = '● ● ●';
         } else {
             if (imgSrc) {
                 const img = document.createElement('img');
                 img.src = imgSrc;
                 img.style.maxWidth = '200px';
-                img.style.borderRadius = '0.75rem';
-                img.style.marginBottom = '0.5rem';
-                img.style.display = 'block';
                 p.appendChild(img);
             }
             if (text) {
@@ -135,8 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateLastMessage(newText) {
         const typingIndicator = chatBody.querySelector('.message.received:last-child p');
-        if (typingIndicator && typingIndicator.querySelector('.typing-dot')) {
-            typingIndicator.innerHTML = ''; // Clear the dots
+        if (typingIndicator && typingIndicator.textContent === "● ● ●") {
             typingIndicator.textContent = newText;
         }
     }
