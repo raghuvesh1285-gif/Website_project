@@ -7,7 +7,7 @@ from groq import Groq
 app = Flask(__name__)
 CORS(app)
 
-# Securely load the API key from environment variables
+# Securely load the API key
 api_key = os.environ.get("GROQ_API_KEY")
 
 client = None
@@ -30,23 +30,18 @@ def chat():
         return jsonify({"error": "Request is missing model or messages."}), 400
 
     try:
-        # --- CORRECT WAY TO CALL THE API AND PARSE THE RESPONSE ---
+        # Call the API with parameters for more concise answers
         chat_completion = client.chat.completions.create(
             messages=messages,
-            model=model_id
+            model=model_id,
+            temperature=0.7,  # A balance between creative and focused
+            max_tokens=1024   # A reasonable limit to prevent overly long answers
         )
         
-        # The response is nested inside choices[0].message.content
         response_content = chat_completion.choices[0].message.content
-        
         return jsonify({"content": response_content})
-        # -------------------------------------------------------------
-
     except Exception as e:
-        # Forward the specific API error from Groq to the frontend
         return jsonify({"error": f"Groq API Error: {str(e)}"}), 500
 
-# This part is only for local testing. Render will use Gunicorn.
 if __name__ == '__main__':
     app.run(port=5000)
-
