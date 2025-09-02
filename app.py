@@ -30,12 +30,11 @@ def chat():
         return jsonify({"error": "Request is missing model or messages."}), 400
 
     try:
-        # Call the API with parameters for more concise answers
         chat_completion = client.chat.completions.create(
             messages=messages,
             model=model_id,
-            temperature=0.7,  # A balance between creative and focused
-            max_tokens=1024   # A reasonable limit to prevent overly long answers
+            temperature=0.7,
+            max_tokens=1024
         )
         
         response_content = chat_completion.choices[0].message.content
