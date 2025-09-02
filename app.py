@@ -30,12 +30,27 @@ def chat():
         return jsonify({"error": "Request is missing model or messages."}), 400
 
     try:
-        chat_completion = client.chat.completions.create(
-            messages=messages,
-            model=model_id,
-            temperature=0.7,
-            max_tokens=1024
-        )
+        # --- DEFINITIVE FIX FOR REAL-TIME BROWSING ---
+        # Check if deep research mode is enabled in the system prompt
+        is_deep_research = any("deep research agent" in message.get("content", "").lower() for message in messages if message.get("role") == "system")
+        
+        if is_deep_research:
+            chat_completion = client.chat.completions.create(
+                messages=messages,
+                model="openai/gpt-oss-120b", # Ensure a model that supports browsing is used
+                temperature=0.7,
+                max_tokens=2048,
+                tools=[{"type": "browser_search"}],
+                tool_choice="required"
+            )
+        else:
+            chat_completion = client.chat.completions.create(
+                messages=messages,
+                model=model_id,
+                temperature=0.7,
+                max_tokens=1024
+            )
+        # ---------------------------------------------
         
         response_content = chat_completion.choices[0].message.content
         return jsonify({"content": response_content})
