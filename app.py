@@ -30,20 +30,23 @@ def chat():
         return jsonify({"error": "Request is missing model or messages."}), 400
 
     try:
-        # --- ADD PARAMETERS HERE TO CONTROL THE RESPONSE ---
+        # --- CORRECT WAY TO CALL THE API AND PARSE THE RESPONSE ---
         chat_completion = client.chat.completions.create(
             messages=messages,
-            model=model_id,
-            temperature=0.5,  # Lower temperature for more focused answers
-            max_completion_tokens=150  # Limit the response to ~150 tokens
+            model=model_id
         )
-        # -----------------------------------------------------
+        
+        # The response is nested inside choices[0].message.content
+        response_content = chat_completion.choices[0].message.content
+        
+        return jsonify({"content": response_content})
+        # -------------------------------------------------------------
 
-        # Return only the message content
-        return jsonify({"content": chat_completion.choices.message.content})
     except Exception as e:
+        # Forward the specific API error from Groq to the frontend
         return jsonify({"error": f"Groq API Error: {str(e)}"}), 500
 
 # This part is only for local testing. Render will use Gunicorn.
 if __name__ == '__main__':
     app.run(port=5000)
+
