@@ -4,6 +4,64 @@ from flask_cors import CORS
 from groq import Groq
 from datetime import datetime
 import requests
+import subprocess
+import tempfil
+from pathlib import Path
+
+@app.route('/api/compile-java', methods=['POST'])
+def compile_java():
+    try:
+        data = request.get_json()
+        java_code = data.get('code', '')
+        
+        if not java_code.strip():
+            return jsonify({'error': 'No code provided'})
+        
+        # Create temporary directory
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Write Java code to file
+            java_file = os.path.join(temp_dir, 'Main.java')
+            with open(java_file, 'w') as f:
+                f.write(java_code)
+            
+            # Compile Java code
+            compile_process = subprocess.run(
+                ['javac', java_file],
+                capture_output=True,
+                text=True,
+                timeout=10,
+                cwd=temp_dir
+            )
+            
+            if compile_process.returncode != 0:
+                return jsonify({
+                    'error': compile_process.stderr or 'Compilation failed'
+                })
+            
+            # Run Java code
+            run_process = subprocess.run(
+                ['java', 'Main'],
+                capture_output=True,
+                text=True,
+                timeout=10,
+                cwd=temp_dir
+            )
+            
+            if run_process.returncode != 0:
+                return jsonify({
+                    'error': f"Runtime Error:\n{run_process.stderr}"
+                })
+            
+            return jsonify({
+                'output': run_process.stdout,
+                'success': True
+            })
+            
+    except subprocess.TimeoutExpired:
+        return jsonify({'error': 'Code execution timed out (10 seconds limit)'})
+    except Exception as e:
+        return jsonify({'error': f'Server error: {str(e)}'})
+
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -112,3 +170,4 @@ Use this current information to provide accurate, up-to-date responses. Cite sou
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
