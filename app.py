@@ -4,8 +4,6 @@ from flask_cors import CORS
 from groq import Groq
 from datetime import datetime
 import requests
-import subprocess
-import tempfile
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -60,7 +58,7 @@ def chat():
                 is_browsing = True
                 break
 
-        # If browsing is enabled, enhance ALL models with web search
+        # If browsing is enabled, enhance with web search
         if is_browsing:
             # Extract user query
             user_query = ""
@@ -84,7 +82,7 @@ Use this current information to provide accurate, up-to-date responses. Cite sou
             # Update the system message with web results
             messages[0]['content'] = enhanced_prompt
 
-        # Call Groq API - now ALL models get web search when browsing is enabled
+        # Call Groq API
         chat_completion = client.chat.completions.create(
             messages=messages,
             model=model_id,
@@ -98,64 +96,9 @@ Use this current information to provide accurate, up-to-date responses. Cite sou
     except Exception as e:
         return jsonify({"error": f"Groq API Error: {str(e)}"}), 500
 
-@app.route('/api/compile-java', methods=['POST'])
-def compile_java():
-    """Compile and execute Java code"""
-    try:
-        data = request.get_json()
-        java_code = data.get('code', '')
-        
-        if not java_code.strip():
-            return jsonify({'error': 'No code provided'})
-        
-        # Create temporary directory
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # Write Java code to file
-            java_file = os.path.join(temp_dir, 'Main.java')
-            with open(java_file, 'w') as f:
-                f.write(java_code)
-            
-            # Compile Java code
-            compile_process = subprocess.run(
-                ['javac', java_file],
-                capture_output=True,
-                text=True,
-                timeout=10,
-                cwd=temp_dir
-            )
-            
-            if compile_process.returncode != 0:
-                return jsonify({
-                    'error': compile_process.stderr or 'Compilation failed'
-                })
-            
-            # Run Java code
-            run_process = subprocess.run(
-                ['java', 'Main'],
-                capture_output=True,
-                text=True,
-                timeout=10,
-                cwd=temp_dir
-            )
-            
-            if run_process.returncode != 0:
-                return jsonify({
-                    'error': f"Runtime Error:\n{run_process.stderr}"
-                })
-            
-            return jsonify({
-                'output': run_process.stdout,
-                'success': True
-            })
-            
-    except subprocess.TimeoutExpired:
-        return jsonify({'error': 'Code execution timed out (10 seconds limit)'})
-    except Exception as e:
-        return jsonify({'error': f'Server error: {str(e)}'})
-
 @app.route('/', methods=['GET'])
 def home():
-    return jsonify({"message": "StudyHub API is running!"})
+    return jsonify({"message": "StudyHub API is running! 🚀"})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
