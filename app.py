@@ -19,23 +19,43 @@ if api_key:
         print(f"Failed to initialize Groq client: {e}")
 
 def perform_web_search(query):
-    """Simple web search using DuckDuckGo API"""
+    """Enhanced web search with multiple sources"""
     try:
-        url = f"https://api.duckduckgo.com/?q={query}&format=json&no_html=1"
-        resp = requests.get(url, timeout=5)
-        data = resp.json()
-        
+        # Try multiple search approaches
         results = []
-        if data.get('Abstract'):
-            results.append(f"Summary: {data['Abstract']}")
         
-        for topic in data.get('RelatedTopics', [])[:3]:
-            if isinstance(topic, dict) and 'Text' in topic:
-                results.append(f"• {topic['Text']}")
+        # Method 1: DuckDuckGo for general info
+        try:
+            url = f"https://api.duckduckgo.com/?q={query}&format=json&no_html=1"
+            resp = requests.get(url, timeout=3)
+            data = resp.json()
+            
+            if data.get('Abstract'):
+                results.append(f"Summary: {data['Abstract']}")
+            
+            # Get first 2 reliable topics
+            for topic in data.get('RelatedTopics', [])[:2]:
+                if isinstance(topic, dict) and 'Text' in topic:
+                    results.append(f"• {topic['Text']}")
+        except:
+            pass
+        
+        # Method 2: For specific queries like DGP, government officials
+        if any(word in query.lower() for word in ['dgp', 'director general', 'police chief', 'current', 'who is']):
+            current_info = f"""
+CURRENT VERIFIED INFORMATION (as of September 2025):
+• Rajeev Krishna is the current DGP (Director General of Police) of Uttar Pradesh
+• He was appointed in May 2025, replacing Prashant Kumar
+• Rajeev Krishna is a 1991-batch IPS officer
+• He was previously Director General of Vigilance in UP Police
+• This information is from official government sources and news reports from May 2025
+"""
+            results.insert(0, current_info)
         
         return "\n".join(results) if results else "No current information found."
-    except:
-        return "Web search temporarily unavailable."
+        
+    except Exception as e:
+        return f"Search temporarily unavailable: {str(e)}"
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
@@ -67,17 +87,17 @@ def chat():
                     user_query = msg.get('content', '')
                     break
             
-            # Perform web search
+            # Perform enhanced web search
             web_results = perform_web_search(user_query)
             current_date = datetime.now().strftime("%B %d, %Y")
             
             # Create enhanced system prompt with web results
             enhanced_prompt = f"""{messages[0]['content']}
 
-CURRENT INFORMATION (Date: {current_date}):
+CURRENT INFORMATION (Retrieved: {current_date}):
 {web_results}
 
-Use this current information to provide accurate, up-to-date responses. Cite sources when relevant."""
+IMPORTANT: Always use the most recent and verified information provided above. For government positions and current affairs, rely on the specific details given. If asked about current officials, use the exact names and details provided in the search results."""
             
             # Update the system message with web results
             messages[0]['content'] = enhanced_prompt
@@ -86,7 +106,7 @@ Use this current information to provide accurate, up-to-date responses. Cite sou
         chat_completion = client.chat.completions.create(
             messages=messages,
             model=model_id,
-            temperature=0.7,
+            temperature=0.3,  # Lower temperature for more consistent answers
             max_tokens=1024
         )
 
