@@ -2,6 +2,8 @@ import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from groq import Groq
+from datetime import datetime
+import requests
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -9,7 +11,6 @@ CORS(app)
 
 # Securely load the API key
 api_key = os.environ.get("GROQ_API_KEY")
-
 client = None
 if api_key:
     try:
@@ -17,45 +18,97 @@ if api_key:
     except Exception as e:
         print(f"Failed to initialize Groq client: {e}")
 
+def perform_web_search(query):
+    """Simple web search using DuckDuckGo API (free)"""
+    try:
+        url = f"https://api.duckduckgo.com/?q={query}&format=json&no_html=1"
+        resp = requests.get(url, timeout=5)
+        data = resp.json()
+        
+        results = []
+        # Get abstract if available
+        if data.get('Abstract'):
+            results.append(f"Summary: {data['Abstract']}")
+        
+        # Get related topics
+        for topic in data.get('RelatedTopics', [])[:3]:
+            if isinstance(topic, dict) and 'Text' in topic:
+                results.append(f"• {topic['Text']}")
+        
+        return "\n".join(results) if results else "No current information found."
+    except:
+        return "Web search temporarily unavailable."
+
 @app.route('/api/chat', methods=['POST'])
 def chat():
     if not client:
-        return jsonify({"error": "Groq API key not configured or invalid on the server."}), 500
+        return jsonify({"error": "Groq API key not configured or invalid on server."}), 500
 
     data = request.get_json()
     model_id = data.get('model')
     messages = data.get('messages')
 
     if not model_id or not messages:
-        return jsonify({"error": "Request is missing model or messages."}), 400
+        return jsonify({"error": "Request missing model or messages."}), 400
 
     try:
-        # Check if deep research mode is enabled in the system prompt
-        is_deep_research = any("deep research agent" in message.get("content", "").lower() for message in messages if message.get("role") == "system")
-        
-        # --- DEFINITIVE FIX FOR REAL-TIME BROWSING ---
-        if is_deep_research:
+        # Check if browsing mode is enabled by looking for the specific system prompt
+        is_browsing = False
+        for msg in messages:
+            if (msg.get('role') == 'system' and 
+                'real-time web browsing' in msg.get('content', '').lower()):
+                is_browsing = True
+                break
+
+        # If browsing is enabled, enhance ALL models with web search
+        if is_browsing:
+            # Extract user query
+            user_query = ""
+            for msg in reversed(messages):
+                if msg.get('role') == 'user':
+                    user_query = msg.get('content', '')
+                    break
+            
+            # Perform web search
+            web_results = perform_web_search(user_query)
+            current_date = datetime.now().strftime("%B %d, %Y")
+            
+            # Create enhanced system prompt with web results
+            enhanced_prompt = f"""{messages[0]['content']}
+
+CURRENT INFORMATION (Date: {current_date}):
+{web_results}
+
+Use this current information to provide accurate, up-to-date responses. Cite sources when relevant."""
+            
+            # Update the system message with web results
+            messages[0]['content'] = enhanced_prompt
+
+        # Call Groq API - now ALL models get web search when browsing is enabled
+        if is_browsing and model_id == "openai/gpt-oss-120b":
+            # For GPT, use your existing method with tools if needed
             chat_completion = client.chat.completions.create(
                 messages=messages,
-                model="openai/gpt-oss-120b",
+                model=model_id,
                 temperature=0.7,
-                max_tokens=2048,
-                tools=[{"type": "browser_search"}],
-                tool_choice="auto"  # Change from "required" to "auto"
+                max_tokens=1024,
+                tools=[{"type": "browser_search"}] if is_browsing else None,
+                tool_choice="auto" if is_browsing else None
             )
         else:
+            # For Qwen and Llama4, use enhanced prompt method
             chat_completion = client.chat.completions.create(
                 messages=messages,
                 model=model_id,
                 temperature=0.7,
                 max_tokens=1024
             )
-        # ---------------------------------------------
-        
+
         response_content = chat_completion.choices[0].message.content
         return jsonify({"content": response_content})
+
     except Exception as e:
         return jsonify({"error": f"Groq API Error: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    app.run(host='0.0.0.0', port=5000)
