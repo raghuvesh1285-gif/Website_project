@@ -1,4 +1,7 @@
- Flask
-groq
+flask
 flask-cors
-gunicorn
+groq
+gunicorn
+requests
+yfinance
+serpapi
