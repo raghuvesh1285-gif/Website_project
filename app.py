@@ -4,13 +4,7 @@ from flask_cors import CORS
 from groq import Groq
 
 app = Flask(__name__)
-CORS(app, resources={
-    r"/api/*": {
-        "origins": "*",
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
-    }
-})
+CORS(app)
 
 # Initialize Groq client
 api_key = os.environ.get("GROQ_API_KEY")
@@ -18,88 +12,88 @@ client = None
 if api_key:
     try:
         client = Groq(api_key=api_key)
-        print("✅ Groq client initialized successfully")
+        print("✅ Groq client initialized")
     except Exception as e:
-        print(f"❌ Failed to initialize Groq client: {e}")
+        print(f"❌ Groq initialization failed: {e}")
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
-    print("📨 Received chat request")
+    print("📨 Chat request received")
     
     if not client:
-        return jsonify({"error": "Groq API client not available"}), 500
+        return jsonify({
+            "error": "API client not available",
+            "content": "Chat service is currently unavailable"
+        }), 500
 
     try:
-        # Get and validate request data
+        # Get request data
         data = request.get_json()
-        if not data:
-            return jsonify({"error": "No JSON data received"}), 400
-            
-        print(f"📋 Request data: {data}")
         
-        # Validate messages field
-        if 'messages' not in data or not isinstance(data['messages'], list):
-            return jsonify({"error": "Messages must be an array"}), 400
-            
-        if len(data['messages']) == 0:
-            return jsonify({"error": "Messages array cannot be empty"}), 400
+        # Validate request
+        if not data or 'messages' not in data:
+            return jsonify({
+                "error": "Invalid request format",
+                "content": "Please provide messages array"
+            }), 400
 
         messages = data['messages']
         model_id = data.get('model', 'openai/gpt-oss-120b')
         
-        print(f"🚀 Calling Groq API with model: {model_id}")
-        print(f"📝 Messages: {messages}")
-        
-        # Call Groq API - FIXED response handling
-        chat_completion = client.chat.completions.create(
-            messages=messages,
-            model=model_id,
-            temperature=0.3,
-            max_tokens=1024
-        )
-        
-        print(f"📥 Raw API response: {chat_completion}")
-        
-        # ✅ CORRECT way to access response content
-        if hasattr(chat_completion, 'choices') and len(chat_completion.choices) > 0:
-            # Use object attribute access for Groq SDK response
-            content = chat_completion.choices.message.content
-            print(f"✅ Extracted content: {content}")
+        print(f"🚀 Processing with model: {model_id}")
+        print(f"📝 Messages count: {len(messages)}")
+
+        # Call Groq API with error handling
+        try:
+            chat_completion = client.chat.completions.create(
+                messages=messages,
+                model=model_id,
+                temperature=0.3,
+                max_tokens=1024
+            )
             
+            # Extract content safely
+            if chat_completion and hasattr(chat_completion, 'choices') and chat_completion.choices:
+                first_choice = chat_completion.choices
+                if hasattr(first_choice, 'message') and hasattr(first_choice.message, 'content'):
+                    content = first_choice.message.content
+                    print(f"✅ Response generated successfully")
+                    return jsonify({"content": content})
+            
+            # Fallback if structure is unexpected
+            print("❌ Unexpected response structure")
+            return jsonify({"content": "Sorry, I couldn't generate a response. Please try again."})
+            
+        except Exception as groq_error:
+            print(f"❌ Groq API error: {groq_error}")
             return jsonify({
-                "content": content or "No response generated"
-            })
-        else:
-            print("❌ No choices in response")
-            return jsonify({
-                "content": "No response generated from AI model"
-            })
+                "error": f"AI service error: {str(groq_error)}",
+                "content": "The AI service encountered an error. Please try again."
+            }), 500
 
     except Exception as e:
-        print(f"❌ Error in chat endpoint: {str(e)}")
-        print(f"❌ Error type: {type(e)}")
-        
+        print(f"❌ General error: {e}")
         return jsonify({
             "error": f"Server error: {str(e)}",
-            "content": "An error occurred. Please try again."
+            "content": "An unexpected error occurred. Please try again."
         }), 500
 
 @app.route('/', methods=['GET'])
 def home():
     return jsonify({
-        "message": "StudyHub API is running! 🚀",
-        "status": "healthy",
-        "groq_client": "connected" if client else "disconnected"
+        "message": "StudyHub API - Fixed Version",
+        "status": "running",
+        "groq_available": client is not None
     })
 
-@app.route('/health', methods=['GET'])
-def health():
+@app.route('/test', methods=['GET'])
+def test():
     return jsonify({
-        "status": "healthy",
-        "groq_available": client is not None,
-        "timestamp": "2025-09-06"
+        "message": "Test endpoint working",
+        "timestamp": "2025-09-06",
+        "version": "error-fixed"
     })
 
 if __name__ == '__main__':
-    print("🚀 Starting StudyHub API...")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    print("🚀 Starting StudyHub API (Error-Fixed Version)...")
+    app.run(host='0.0.0.0', port=5000)
