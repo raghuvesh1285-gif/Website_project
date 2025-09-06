@@ -4,96 +4,151 @@ from flask_cors import CORS
 from groq import Groq
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*", "methods": ["GET", "POST", "OPTIONS"]}})
 
-# Initialize Groq client
+# Initialize Groq client with detailed error handling
 api_key = os.environ.get("GROQ_API_KEY")
 client = None
+
+print(f"🔑 API Key present: {'Yes' if api_key else 'No'}")
+print(f"🔑 API Key length: {len(api_key) if api_key else 0}")
+
 if api_key:
     try:
         client = Groq(api_key=api_key)
-        print("✅ Groq client initialized")
+        print("✅ Groq client initialized successfully")
     except Exception as e:
-        print(f"❌ Groq initialization failed: {e}")
+        print(f"❌ Failed to initialize Groq client: {e}")
+        print(f"❌ Error type: {type(e)}")
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
-    print("📨 Chat request received")
+    print("\n" + "="*50)
+    print("📨 NEW CHAT REQUEST RECEIVED")
+    print("="*50)
     
     if not client:
+        print("❌ No Groq client available")
         return jsonify({
-            "error": "API client not available",
-            "content": "Chat service is currently unavailable"
+            "error": "API client not initialized",
+            "content": "Chat service is not available. Please check server logs."
         }), 500
 
     try:
-        # Get request data
+        # Get and log request data
         data = request.get_json()
+        print(f"📋 Raw request data: {data}")
         
-        # Validate request
-        if not data or 'messages' not in data:
+        if not data:
+            print("❌ No JSON data received")
             return jsonify({
-                "error": "Invalid request format",
-                "content": "Please provide messages array"
+                "error": "No JSON data",
+                "content": "Please provide valid JSON data."
             }), 400
 
-        messages = data['messages']
+        # Extract fields
         model_id = data.get('model', 'openai/gpt-oss-120b')
+        messages = data.get('messages', [])
         
-        print(f"🚀 Processing with model: {model_id}")
-        print(f"📝 Messages count: {len(messages)}")
+        print(f"🤖 Model ID: {model_id}")
+        print(f"💬 Messages count: {len(messages)}")
+        print(f"💬 Messages: {messages}")
 
-        # Call Groq API with error handling
+        # Validate messages
+        if not messages or not isinstance(messages, list):
+            print("❌ Invalid messages format")
+            return jsonify({
+                "error": "Messages must be a non-empty array",
+                "content": "Please provide valid messages array."
+            }), 400
+
+        # Call Groq API with detailed logging
+        print(f"🚀 Calling Groq API...")
+        print(f"🚀 Model: {model_id}")
+        print(f"🚀 Messages: {len(messages)} items")
+        
         try:
             chat_completion = client.chat.completions.create(
                 messages=messages,
                 model=model_id,
-                temperature=0.3,
+                temperature=0.7,
                 max_tokens=1024
             )
             
-            # Extract content safely
-            if chat_completion and hasattr(chat_completion, 'choices') and chat_completion.choices:
-                first_choice = chat_completion.choices
-                if hasattr(first_choice, 'message') and hasattr(first_choice.message, 'content'):
-                    content = first_choice.message.content
-                    print(f"✅ Response generated successfully")
-                    return jsonify({"content": content})
+            print(f"✅ API call successful!")
+            print(f"📥 Response type: {type(chat_completion)}")
+            print(f"📥 Response: {chat_completion}")
             
-            # Fallback if structure is unexpected
-            print("❌ Unexpected response structure")
-            return jsonify({"content": "Sorry, I couldn't generate a response. Please try again."})
-            
-        except Exception as groq_error:
-            print(f"❌ Groq API error: {groq_error}")
+            # Extract content with detailed checks
+            if hasattr(chat_completion, 'choices'):
+                print(f"✅ Has choices attribute")
+                print(f"📊 Choices count: {len(chat_completion.choices) if chat_completion.choices else 0}")
+                
+                if chat_completion.choices and len(chat_completion.choices) > 0:
+                    first_choice = chat_completion.choices[0]
+                    print(f"✅ First choice: {first_choice}")
+                    
+                    if hasattr(first_choice, 'message'):
+                        message = first_choice.message
+                        print(f"✅ Has message: {message}")
+                        
+                        if hasattr(message, 'content'):
+                            content = message.content
+                            print(f"✅ Content extracted: {content[:100]}...")
+                            
+                            return jsonify({
+                                "content": content or "Empty response from AI"
+                            })
+                        else:
+                            print("❌ Message has no content attribute")
+                    else:
+                        print("❌ Choice has no message attribute")
+                else:
+                    print("❌ No choices in response")
+            else:
+                print("❌ Response has no choices attribute")
+
+            print("❌ Could not extract content from response")
             return jsonify({
-                "error": f"AI service error: {str(groq_error)}",
-                "content": "The AI service encountered an error. Please try again."
+                "content": "AI response received but content could not be extracted."
+            })
+
+        except Exception as groq_error:
+            print(f"❌ Groq API Error: {groq_error}")
+            print(f"❌ Error type: {type(groq_error)}")
+            print(f"❌ Error details: {str(groq_error)}")
+            
+            return jsonify({
+                "error": f"AI API Error: {str(groq_error)}",
+                "content": f"The AI service returned an error: {str(groq_error)}"
             }), 500
 
     except Exception as e:
         print(f"❌ General error: {e}")
+        print(f"❌ Error type: {type(e)}")
         return jsonify({
             "error": f"Server error: {str(e)}",
-            "content": "An unexpected error occurred. Please try again."
+            "content": "An unexpected server error occurred."
         }), 500
 
 @app.route('/', methods=['GET'])
 def home():
     return jsonify({
-        "message": "StudyHub API - Fixed Version",
+        "message": "StudyHub API - Debug Version",
         "status": "running",
-        "groq_available": client is not None
+        "groq_client": "initialized" if client else "not available",
+        "api_key_present": bool(api_key)
     })
 
-@app.route('/test', methods=['GET'])
-def test():
+@app.route('/debug', methods=['GET'])
+def debug():
     return jsonify({
-        "message": "Test endpoint working",
-        "timestamp": "2025-09-06",
-        "version": "error-fixed"
+        "groq_client_available": client is not None,
+        "api_key_length": len(api_key) if api_key else 0,
+        "environment_variables": list(os.environ.keys())
     })
 
 if __name__ == '__main__':
-    print("🚀 Starting StudyHub API (Error-Fixed Version)...")
-    app.run(host='0.0.0.0', port=5000)
+    print("🚀 Starting StudyHub API (Debug Version)")
+    print(f"🔧 Debug mode: ON")
+    app.run(host='0.0.0.0', port=5000, debug=True)
