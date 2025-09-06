@@ -1,7 +1,10 @@
 flask
 flask-cors
+flask-socketio
 groq
 gunicorn
 requests
 yfinance
 serpapi
+beautifulsoup4
+python-socketio[client]
