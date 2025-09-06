@@ -83,7 +83,7 @@ def chat():
             chat_completion = client.chat.completions.create(
                 messages=messages,
                 model=model_id,
-                temperature=0.7,
+                temperature=0.1,
                 max_tokens=1024
             )
 
@@ -329,7 +329,7 @@ def chat_with_browsing():
         chat_completion = client.chat.completions.create(
             messages=messages,
             model=model_id,
-            temperature=0.7,
+            temperature=0.1,
             max_tokens=1024
         )
         
@@ -430,3 +430,4 @@ if __name__ == '__main__':
     print(f"🌐 Real-time browsing: ENABLED")
     print(f"🔌 WebSocket support: ENABLED")
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+
