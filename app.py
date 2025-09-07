@@ -2,6 +2,8 @@ import os
 import requests
 import json
 import time
+from urllib.parse import urlparse, urljoin
+from bs4 import BeautifulSoup
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -24,6 +26,48 @@ if api_key:
         print("✅ Groq client initialized successfully")
     except Exception as e:
         print(f"❌ Failed to initialize Groq client: {e}")
+
+# ✅ FIXED: Function to serialize ExecutedTool objects
+def serialize_executed_tools(executed_tools):
+    """Convert ExecutedTool objects to JSON-serializable dictionaries"""
+    if not executed_tools:
+        return []
+    
+    serialized = []
+    for tool in executed_tools:
+        tool_dict = {}
+        
+        # Safely extract common attributes
+        for attr in ['name', 'type', 'index', 'arguments', 'output', 'search_results']:
+            if hasattr(tool, attr):
+                val = getattr(tool, attr)
+                
+                # Handle different types of values
+                if val is not None:
+                    if isinstance(val, (str, int, float, bool, list, dict)):
+                        tool_dict[attr] = val
+                    else:
+                        # Convert complex objects to string
+                        try:
+                            tool_dict[attr] = str(val)
+                        except Exception:
+                            tool_dict[attr] = repr(val)
+        
+        # Add additional tool information if available
+        if hasattr(tool, '__dict__'):
+            for key, value in tool.__dict__.items():
+                if key not in tool_dict and not key.startswith('_'):
+                    try:
+                        if isinstance(value, (str, int, float, bool, list, dict)):
+                            tool_dict[key] = value
+                        else:
+                            tool_dict[key] = str(value)
+                    except Exception:
+                        pass
+        
+        serialized.append(tool_dict)
+    
+    return serialized
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
@@ -99,7 +143,7 @@ def chat():
 
 @app.route('/api/chat-with-browsing', methods=['POST'])
 def chat_with_browsing():
-    """✅ REAL-TIME BROWSING with Groq Compound Models"""
+    """✅ FIXED: Real-time browsing with proper ExecutedTool serialization"""
     print("\n" + "="*50)
     print("🤖🌐 REAL-TIME BROWSING REQUEST")
     print("="*50)
@@ -116,10 +160,18 @@ def chat_with_browsing():
         
         print(f"🔗 Using COMPOUND model for real-time browsing")
         
+        # Enhanced system message for better browsing
+        enhanced_messages = [
+            {
+                "role": "system",
+                "content": "You are StudyArea AI with real-time web search capabilities. When users ask about current events, recent information, stock prices, weather, news, or include URLs, use your web search tools to provide up-to-date, accurate information. Always cite your sources."
+            }
+        ] + messages
+        
         # ✅ FIXED: Use Groq's Compound model for real web search
         chat_completion = client.chat.completions.create(
             model="groq/compound",  # ✅ This model has web search capability
-            messages=messages,
+            messages=enhanced_messages,
             temperature=0.7,
             max_tokens=2048
         )
@@ -130,19 +182,22 @@ def chat_with_browsing():
             message = chat_completion.choices[0].message
             content = message.content if hasattr(message, 'content') else "No content"
             
-            # ✅ Also get reasoning and search results if available
-            reasoning = message.reasoning if hasattr(message, 'reasoning') else None
-            executed_tools = message.executed_tools if hasattr(message, 'executed_tools') else None
-            
             response_data = {"content": content}
             
-            if reasoning:
-                response_data["reasoning"] = reasoning
-                print(f"🧠 Reasoning available: {len(reasoning) if reasoning else 0} chars")
+            # ✅ FIXED: Properly serialize reasoning if available
+            if hasattr(message, 'reasoning') and message.reasoning:
+                response_data["reasoning"] = str(message.reasoning)
+                print(f"🧠 Reasoning available: {len(str(message.reasoning))} chars")
             
-            if executed_tools:
-                response_data["search_results"] = executed_tools
-                print(f"🔍 Search results available: {len(executed_tools)} tools")
+            # ✅ FIXED: Properly serialize executed tools
+            if hasattr(message, 'executed_tools') and message.executed_tools:
+                try:
+                    serialized_tools = serialize_executed_tools(message.executed_tools)
+                    response_data["search_results"] = serialized_tools
+                    print(f"🔍 Search results serialized: {len(serialized_tools)} tools")
+                except Exception as serialize_error:
+                    print(f"⚠️ Tool serialization error: {serialize_error}")
+                    response_data["search_results"] = [{"error": "Could not serialize search results"}]
             
             return jsonify(response_data)
         
@@ -155,18 +210,47 @@ def chat_with_browsing():
             "content": f"Real-time browsing failed: {str(e)}"
         }), 500
 
+# Store active connections and browsing sessions
+active_connections = []
+browsing_sessions = {}
+
+# WebSocket handlers
+@socketio.on('connect')
+def on_connect():
+    active_connections.append(request.sid)
+    print(f"🔌 Client {request.sid} connected")
+    emit('connection_status', {'status': 'connected', 'message': 'Real-time browsing enabled'})
+
+@socketio.on('disconnect')
+def on_disconnect():
+    if request.sid in active_connections:
+        active_connections.remove(request.sid)
+    print(f"🔌 Client {request.sid} disconnected")
+
 @app.route('/', methods=['GET'])
 def home():
     return jsonify({
-        "message": "StudyArea API with REAL Real-time Browsing",
+        "message": "StudyArea API with FIXED Real-time Browsing",
         "status": "running",
         "groq_client": "initialized" if client else "not available",
-        "features": ["chat", "REAL real-time browsing via Compound", "websockets"],
+        "features": ["chat", "FIXED real-time browsing via Compound", "websockets"],
         "browsing_model": "groq/compound",
-        "regular_models": ["openai/gpt-oss-120b", "qwen/qwen3-32b", "meta-llama/llama-4-scout"]
+        "regular_models": ["openai/gpt-oss-120b", "qwen/qwen3-32b", "meta-llama/llama-4-scout"],
+        "fix_applied": "ExecutedTool serialization fixed"
+    })
+
+@app.route('/debug', methods=['GET'])
+def debug():
+    return jsonify({
+        "groq_client_available": client is not None,
+        "api_key_length": len(api_key) if api_key else 0,
+        "active_connections": len(active_connections),
+        "browsing_sessions": len(browsing_sessions),
+        "serialization_fix": "Applied for ExecutedTool objects"
     })
 
 if __name__ == '__main__':
-    print("🚀 Starting StudyArea API with REAL Real-time Browsing")
+    print("🚀 Starting StudyArea API with FIXED Real-time Browsing")
     print(f"🌐 Web Search Model: groq/compound")
+    print(f"🔧 ExecutedTool Serialization: FIXED")
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
